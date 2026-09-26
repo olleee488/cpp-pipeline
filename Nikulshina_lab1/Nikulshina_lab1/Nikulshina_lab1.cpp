@@ -91,6 +91,19 @@ void printStation(const Station& station) {
 		<< "The station class: " << station.stationClass << "\n\n";
 }
 
+void showMenu() {
+	std::cout << "Control menu\n";
+	std::cout << "1. Add a pipe\n";
+	std::cout << "2. Add a station\n";
+	std::cout << "3. View all objects\n";
+	std::cout << "4. Edit a pipe\n";
+	std::cout << "5. Edit a station\n";
+	std::cout << "6. Save\n";
+	std::cout << "7. Load\n";
+	std::cout << "0. Exit\n";
+	std::cout << "Choose action: ";
+}
+
 int main() {
 	Pipe myPipe;
 	inputPipe(myPipe);
@@ -98,5 +111,6 @@ int main() {
 	Station myStation;
 	inputStation(myStation);
 	printStation(myStation);
+	showMenu();
 	return 0;
 }
