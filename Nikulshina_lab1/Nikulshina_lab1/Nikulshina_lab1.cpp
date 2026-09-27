@@ -91,6 +91,34 @@ void printStation(const Station& station) {
 		<< "The station class: " << station.stationClass << "\n\n";
 }
 
+void toggleRepair(Pipe& pipe) {
+	pipe.underRepair = !pipe.underRepair;
+	std::cout << "Pipe repair status changed to: "
+		<< (pipe.underRepair ? "Yes" : "No") << "\n";
+}
+
+void startWorkshop(Station& station) {
+	if (station.workingWorkshops < station.workshops) {
+		station.workingWorkshops++;
+		std::cout << "Workshop started! Now working: "
+			<< station.workingWorkshops << "\n";
+	}
+	else {
+		std::cout << "All workshops are already working!|n";
+	}
+}
+
+void stopWorkshop(Station& station) {
+	if (station.workingWorkshops > 0) {
+		station.workingWorkshops--;
+		std::cout << "Workshop stopped! Now working: "
+			<< station.workingWorkshops << "\n";
+	}
+	else {
+		std::cout << "No working workshops to stop!\n";
+	}
+}
+
 void showMenu() {
 	std::cout << "Control menu\n";
 	std::cout << "1. Add a pipe\n";
@@ -107,9 +135,11 @@ void showMenu() {
 int main() {
 	Pipe myPipe;
 	inputPipe(myPipe);
+	toggleRepair(myPipe);
 	printPipe(myPipe);
 	Station myStation;
 	inputStation(myStation);
+	startWorkshop(myStation);
 	printStation(myStation);
 	showMenu();
 	return 0;
