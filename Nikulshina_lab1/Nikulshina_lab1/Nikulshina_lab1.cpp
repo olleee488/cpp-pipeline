@@ -1,5 +1,6 @@
 ﻿#include <iostream>
 #include <string>
+#include <fstream>
 
 struct Pipe
 {
@@ -130,6 +131,57 @@ void showMenu() {
 	std::cout << "7. Load\n";
 	std::cout << "0. Exit\n";
 	std::cout << "Choose action: ";
+}
+
+void saveToFile(const Pipe& pipe, const Station& station, bool hasPipe, bool hasStation) {
+	std::ofstream file("data.txt");
+	if (!file.is_open()) {
+		std::cout << "Error! Cannot open file for writing\n";
+		return;
+	}
+
+	file << (hasPipe ? 1 : 0) << "\n";
+	if (hasPipe) {
+		file << pipe.kilometerMark << "\n"
+			<< pipe.length << "\n"
+			<< pipe.diameter << "\n"
+			<< pipe.underRepair << "\n";
+	}
+
+	file << (hasStation ? 1 : 0) << "\n";
+	if (hasStation) {
+		file << station.name << "\n"
+			<< station.workshops << "\n"
+			<< station.workingWorkshops << "\n"
+			<< station.stationClass << "\n";
+	}
+
+	file.close();
+}
+
+void loadFromFile(Pipe& pipe, Station& station, bool& hasPipe, bool& hasStation) {
+	std::ifstream file("data.txt");
+	if (!file.is_open()) {
+		std::cout << "Error! Cannot open file for reading!\n";
+		return;
+	}
+
+	int flag;
+	file >> flag;
+	hasPipe = (flag == 1);
+	if (hasPipe) {
+		std::getline(file >> std::ws, pipe.kilometerMark);
+		file >> pipe.length >> pipe.diameter >> pipe.underRepair;
+	}
+
+	file >> flag;
+	hasStation = (flag == 1);
+	if (hasStation) {
+		std::getline(file >> std::ws, station.name);
+		file >> station.workshops >> station.workingWorkshops >> station.stationClass;
+	}
+
+	file.close();
 }
 
 int main() {
