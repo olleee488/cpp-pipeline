@@ -24,18 +24,18 @@ void inputPipe(Pipe& pipe) {
 
 	while (true) {
 		std::cout << "Enter length: ";
-		if (std::cin >> pipe.length && pipe.length > 0) break;
+		if (std::cin >> pipe.length && pipe.length > 0 && std::cin.peek() == '\n') break;
 
-		std::cout << "Error! Length must be greater than 0\n";
+		std::cout << "Error! Enter a valid number\n";
 		std::cin.clear();
 		std::cin.ignore(1000, '\n');
 	}
 
 	while (true) {
 		std::cout << "Enter diameter: ";
-		if (std::cin >> pipe.diameter && pipe.diameter > 0) break;
+		if (std::cin >> pipe.diameter && pipe.diameter > 0 && std::cin.peek() == '\n') break;
 
-		std::cout << "Error! Diameter must be greater than 0\n";
+		std::cout << "Error! Enter a valid number\n";
 		std::cin.clear();
 		std::cin.ignore(1000, '\n');
 	}
@@ -57,9 +57,9 @@ void inputStation(Station& station) {
 
 	while (true) {
 		std::cout << "Enter the number of workshops: ";
-		if (std::cin >> station.workshops && station.workshops > 0) break;
+		if (std::cin >> station.workshops && station.workshops > 0 && std::cin.peek() == '\n') break;
 
-		std::cout << "Error! The number of workshops must be greater than 0\n";
+		std::cout << "Error! Enter a valid number\n";
 		std::cin.clear();
 		std::cin.ignore(1000, '\n');
 	}
@@ -67,9 +67,9 @@ void inputStation(Station& station) {
 	while (true) {
 		std::cout << "Enter the number of active workshops: ";
 		if (std::cin >> station.workingWorkshops && station.workingWorkshops >= 0
-			&& station.workingWorkshops <= station.workshops) break;
+			&& station.workingWorkshops <= station.workshops && std::cin.peek() == '\n') break;
 
-		std::cout << "Error! The number of active workshops must be between 0 and "
+		std::cout << "Error! Enter a valid number. The number of active workshops must be between 0 and "
 			<< station.workshops << "\n";
 		std::cin.clear();
 		std::cin.ignore(1000, '\n');
@@ -77,9 +77,9 @@ void inputStation(Station& station) {
 
 	while (true) {
 		std::cout << "Enter station class: ";
-		if (std::cin >> station.stationClass && station.stationClass > 0) break;
+		if (std::cin >> station.stationClass && station.stationClass > 0 && std::cin.peek() == '\n') break;
 
-		std::cout << "Error! Station class must be greater than 0\n";
+		std::cout << "Error! Enter a valid number\n";
 		std::cin.clear();
 		std::cin.ignore(1000, '\n');
 	}
@@ -105,7 +105,7 @@ void startWorkshop(Station& station) {
 			<< station.workingWorkshops << "\n";
 	}
 	else {
-		std::cout << "All workshops are already working!|n";
+		std::cout << "All workshops are already working!\n";
 	}
 }
 
@@ -236,7 +236,7 @@ int main() {
 				toggleRepair(myPipe);
 			}
 			else {
-				std::cout << "Error! Pipe is not added yet";
+				std::cout << "Error! Pipe is not added yet\n";
 			}
 			break;
 
@@ -282,7 +282,7 @@ int main() {
 			return 0;
 
 		default:
-			std::cout << "Error! Enter a valid number";
+			std::cout << "Error! Enter a valid number\n";
 		}
 	}
 	return 0;
