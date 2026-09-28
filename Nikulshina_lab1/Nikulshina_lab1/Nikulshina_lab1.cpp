@@ -162,7 +162,7 @@ void saveToFile(const Pipe& pipe, const Station& station, bool hasPipe, bool has
 void loadFromFile(Pipe& pipe, Station& station, bool& hasPipe, bool& hasStation) {
 	std::ifstream file("data.txt");
 	if (!file.is_open()) {
-		std::cout << "Error! Cannot open file for reading!\n";
+		std::cout << "Error! Cannot open file for reading\n";
 		return;
 	}
 
@@ -186,13 +186,104 @@ void loadFromFile(Pipe& pipe, Station& station, bool& hasPipe, bool& hasStation)
 
 int main() {
 	Pipe myPipe;
-	inputPipe(myPipe);
-	toggleRepair(myPipe);
-	printPipe(myPipe);
 	Station myStation;
-	inputStation(myStation);
-	startWorkshop(myStation);
-	printStation(myStation);
-	showMenu();
+	bool hasPipe = false;
+	bool hasStation = false;
+
+	while (true) {
+		showMenu();
+		int choice;
+
+		if (!(std::cin >> choice)) {
+			std::cout << "Error! Please enter a number from 0 to 7\n";
+			std::cin.clear();
+			std::cin.ignore(1000, '\n');
+			continue;
+		}
+
+		switch (choice) {
+		case 1:
+			inputPipe(myPipe);
+			hasPipe = true;
+			std::cout << "Pipe added\n";
+			break;
+
+		case 2:
+			inputStation(myStation);
+			hasStation = true;
+			std::cout << "Station added";
+			break;
+
+		case 3:
+			std::cout << "\nCurrent objects\n";
+			if (hasPipe) {
+				printPipe(myPipe);
+			}
+			else {
+				std::cout << "Pipe is no added\n";
+			}
+
+			if (hasStation) {
+				printStation(myStation);
+			}
+			else {
+				std::cout << "Station is not added\n";
+			}
+			break;
+
+		case 4:
+			if (hasPipe) {
+				toggleRepair(myPipe);
+			}
+			else {
+				std::cout << "Error! Pipe is not added yet";
+			}
+			break;
+
+		case 5:
+			if (hasStation) {
+				std::cout << "\nChoose action for the station\n";
+				std::cout << "1. Start a workshop\n";
+				std::cout << "2. Stop a workshop\n";
+				std::cout << "0. Cancel\n";
+				std::cout << "Your choice: ";
+
+				int subChoice;
+				if (std::cin >> subChoice) {
+					if (subChoice == 1) {
+						startWorkshop(myStation);
+					}
+					else if (subChoice == 2) {
+						stopWorkshop(myStation);
+					}
+					else if (subChoice != 0) {
+						std::cout << "Invalid choice\n";
+					}
+					else {
+						std::cin.clear();
+						std::cin.ignore(1000, '\n');
+					}
+				}
+			}
+			else {
+				std::cout << "Error! Station is not added yet\n";
+			}
+			break;
+		case 6:
+			saveToFile(myPipe, myStation, hasPipe, hasStation);
+			break;
+
+		case 7:
+			loadFromFile(myPipe, myStation, hasPipe, hasStation);
+			break;
+
+		case 0:
+			std::cout << "Exiting program\n";
+			return 0;
+
+		default:
+			std::cout << "Error! Enter a valid number";
+		}
+	}
 	return 0;
 }
