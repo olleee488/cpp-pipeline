@@ -133,13 +133,7 @@ void showMenu() {
 	std::cout << "Choose action: ";
 }
 
-void saveToFile(const Pipe& pipe, const Station& station, bool hasPipe, bool hasStation) {
-	std::ofstream file("data.txt");
-	if (!file.is_open()) {
-		std::cout << "Error! Cannot open file for writing\n";
-		return;
-	}
-
+void saveToFilePipe(const Pipe& pipe, bool hasPipe, std::ofstream& file) {
 	file << (hasPipe ? 1 : 0) << "\n";
 	if (hasPipe) {
 		file << pipe.kilometerMark << "\n"
@@ -147,7 +141,9 @@ void saveToFile(const Pipe& pipe, const Station& station, bool hasPipe, bool has
 			<< pipe.diameter << "\n"
 			<< pipe.underRepair << "\n";
 	}
+}
 
+void saveToFileStation(const Station& station, bool hasStation, std::ofstream& file) {
 	file << (hasStation ? 1 : 0) << "\n";
 	if (hasStation) {
 		file << station.name << "\n"
@@ -155,17 +151,9 @@ void saveToFile(const Pipe& pipe, const Station& station, bool hasPipe, bool has
 			<< station.workingWorkshops << "\n"
 			<< station.stationClass << "\n";
 	}
-
-	file.close();
 }
 
-void loadFromFile(Pipe& pipe, Station& station, bool& hasPipe, bool& hasStation) {
-	std::ifstream file("data.txt");
-	if (!file.is_open()) {
-		std::cout << "Error! Cannot open file for reading\n";
-		return;
-	}
-
+void loadFromFilePipe(Pipe& pipe, bool& hasPipe, std::ifstream& file) {
 	int flag;
 	file >> flag;
 	hasPipe = (flag == 1);
@@ -173,15 +161,16 @@ void loadFromFile(Pipe& pipe, Station& station, bool& hasPipe, bool& hasStation)
 		std::getline(file >> std::ws, pipe.kilometerMark);
 		file >> pipe.length >> pipe.diameter >> pipe.underRepair;
 	}
+}
 
+void loadFromFileStation(Station& station, bool& hasStation, std::ifstream& file) {
+	int flag;
 	file >> flag;
 	hasStation = (flag == 1);
 	if (hasStation) {
 		std::getline(file >> std::ws, station.name);
 		file >> station.workshops >> station.workingWorkshops >> station.stationClass;
 	}
-
-	file.close();
 }
 
 int main() {
@@ -211,7 +200,7 @@ int main() {
 		case 2:
 			inputStation(myStation);
 			hasStation = true;
-			std::cout << "Station added";
+			std::cout << "Station added\n";
 			break;
 
 		case 3:
@@ -259,10 +248,10 @@ int main() {
 					else if (subChoice != 0) {
 						std::cout << "Invalid choice\n";
 					}
-					else {
-						std::cin.clear();
-						std::cin.ignore(1000, '\n');
-					}
+				}
+				else {
+					std::cin.clear();
+					std::cin.ignore(1000, '\n');
 				}
 			}
 			else {
@@ -270,12 +259,31 @@ int main() {
 			}
 			break;
 		case 6:
-			saveToFile(myPipe, myStation, hasPipe, hasStation);
-			break;
-
+		{
+			std::ofstream file("data.txt");
+			if (!file.is_open()) {
+				std::cout << "Error! Cannot open file for writing\n";
+			}
+			else {
+				saveToFilePipe(myPipe, hasPipe, file);
+				saveToFileStation(myStation, hasStation, file);
+				file.close();
+			}
+		}
+		break;
 		case 7:
-			loadFromFile(myPipe, myStation, hasPipe, hasStation);
-			break;
+		{
+			std::ifstream file("data.txt");
+			if (!file.is_open()) {
+				std::cout << "Error! Cannot open file for reading\n";
+			}
+			else {
+				loadFromFilePipe(myPipe, hasPipe, file);
+				loadFromFileStation(myStation, hasStation, file);
+				file.close();
+			}
+		}
+		break;
 
 		case 0:
 			std::cout << "Exiting program\n";
