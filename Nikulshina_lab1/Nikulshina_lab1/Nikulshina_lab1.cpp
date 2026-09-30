@@ -143,6 +143,8 @@ void saveToFilePipe(const Pipe& pipe, bool hasPipe, std::ofstream& file) {
 	}
 }
 
+
+void saveToFileStation(const Station& station, bool hasStation, std::ofstream& file) {
 	file << (hasStation ? 1 : 0) << "\n";
 	if (hasStation) {
 		file << station.name << "\n"
