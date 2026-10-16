@@ -85,7 +85,7 @@ void inputStation(Station& station) {
 	}
 }
 
-void printStation(const Station& station) {
+void inputStation(Station& station) {
 	std::cout << "Station\n" << "Name: " << station.name << "\n"
 		<< "The number of workshops: " << station.workshops << "\n"
 		<< "The number of active workshops: " << station.workingWorkshops << "\n"
