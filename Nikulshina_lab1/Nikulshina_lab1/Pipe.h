@@ -1,6 +1,7 @@
 #pragma once
 #include <stdlib.h>
 #include <string>
+#include <fstream>
 
 class Pipe {
 private:
@@ -14,7 +15,7 @@ public:
 	Pipe();
 	Pipe(const std::string& km, double len, int diam, bool repair);
 
-	int detId() const { return id; }
+	int getId() const { return id; }
 	std::string getKilometerMark() const { return kilometerMark; }
 	double getLength() const { return length; }
 	int getDiameter() const { return diameter; }
@@ -24,12 +25,12 @@ public:
 	void setKilometerMark(const std::string& km) { kilometerMark = km; }
 	void setLength(double len) { length = len; }
 	void setDiameter(int diam) { diameter = diam; }
-	void toggleRepair() { underRepair = !underRepair; }
+	void setUnderRepair(bool r) { underRepair = r; }
 	static void setNextID(int val) { nextPipeID = val; }
 
 	void inputPipe();
-	void printPipe();
+	void printPipe() const;
 	void toggleRepair();
-	void saveToFilePipe(std::ofstream& file);
+	void saveToFilePipe(std::ofstream& file) const;
 	void loadFromFilePipe(std::ifstream& file);
 };

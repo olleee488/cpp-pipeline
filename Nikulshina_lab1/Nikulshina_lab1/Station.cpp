@@ -1,14 +1,21 @@
 #include "Station.h"
 #include <iostream>
-#include <fstream>
 
-void Station::inputStation(Station& station) {
+int Station::nextStationID = 1;
+
+Station::Station()
+	:id(nextStationID++), name(""), workshops(0), workingWorkshops(0), stationClass(0) {}
+
+Station::Station(const std::string& n, int ws, int aws, int cls)
+	:id(nextStationID++), name(n), workshops(ws), workingWorkshops(aws), stationClass(cls) {}
+
+void Station::inputStation() {
 	std::cout << "Enter station name: ";
-	std::getline(std::cin >> std::ws, station.name);
+	std::getline(std::cin >> std::ws, name);
 
 	while (true) {
 		std::cout << "Enter the number of workshops: ";
-		if (std::cin >> station.workshops && station.workshops > 0 && std::cin.peek() == '\n') break;
+		if (std::cin >> workshops && workshops > 0 && std::cin.peek() == '\n') break;
 
 		std::cout << "Error! Enter a valid number\n";
 		std::cin.clear();
@@ -17,18 +24,18 @@ void Station::inputStation(Station& station) {
 
 	while (true) {
 		std::cout << "Enter the number of active workshops: ";
-		if (std::cin >> station.workingWorkshops && station.workingWorkshops >= 0
-			&& station.workingWorkshops <= station.workshops && std::cin.peek() == '\n') break;
+		if (std::cin >> workingWorkshops && workingWorkshops >= 0
+			&& workingWorkshops <= workshops && std::cin.peek() == '\n') break;
 
 		std::cout << "Error! Enter a valid number. The number of active workshops must be between 0 and "
-			<< station.workshops << "\n";
+			<< workshops << "\n";
 		std::cin.clear();
 		std::cin.ignore(1000, '\n');
 	}
 
 	while (true) {
 		std::cout << "Enter station class: ";
-		if (std::cin >> station.stationClass && station.stationClass > 0 && std::cin.peek() == '\n') break;
+		if (std::cin >> stationClass && stationClass > 0 && std::cin.peek() == '\n') break;
 
 		std::cout << "Error! Enter a valid number\n";
 		std::cin.clear();
@@ -36,52 +43,50 @@ void Station::inputStation(Station& station) {
 	}
 }
 
-void Station::inputStation(Station& station) {
-	std::cout << "Station\n" << "Name: " << station.name << "\n"
-		<< "The number of workshops: " << station.workshops << "\n"
-		<< "The number of active workshops: " << station.workingWorkshops << "\n"
-		<< "The station class: " << station.stationClass << "\n\n";
+void Station::printStation() const {
+	std::cout << "Station #" << id << "\n"
+		<< "Name: " << name << "\n"
+		<< "The number of workshops: " << workshops << "\n"
+		<< "The number of active workshops: " << workingWorkshops << "\n"
+		<< "The station class: " << stationClass << "\n\n";
 }
 
-void Station::startWorkshop(Station& station) {
-	if (station.workingWorkshops < station.workshops) {
-		station.workingWorkshops++;
+void Station::startWorkshop() {
+	if (workingWorkshops < workshops) {
+		workingWorkshops++;
 		std::cout << "Workshop started! Now working: "
-			<< station.workingWorkshops << "\n";
+			<< workingWorkshops << "\n";
 	}
 	else {
 		std::cout << "All workshops are already working!\n";
 	}
 }
 
-void Station::stopWorkshop(Station& station) {
-	if (station.workingWorkshops > 0) {
-		station.workingWorkshops--;
+void Station::stopWorkshop() {
+	if (workingWorkshops > 0) {
+		workingWorkshops--;
 		std::cout << "Workshop stopped! Now working: "
-			<< station.workingWorkshops << "\n";
+			<< workingWorkshops << "\n";
 	}
 	else {
 		std::cout << "No working workshops to stop!\n";
 	}
 }
 
-void Station::saveToFileStation(const Station& station, bool hasStation, std::ofstream& file) {
-	file << (hasStation ? 1 : 0) << "\n";
-	if (hasStation) {
-		file << station.name << "\n"
-			<< station.workshops << "\n"
-			<< station.workingWorkshops << "\n"
-			<< station.stationClass << "\n";
-	}
+void Station::saveToFileStation(std::ofstream& file) const {
+	file << id << "\n"
+		<< name << "\n"
+		<< workshops << "\n"
+		<< workingWorkshops << "\n"
+		<< stationClass << "\n";
 }
 
-void Station::loadFromFileStation(Station& station, bool& hasStation, std::ifstream& file) {
-	int flag;
-	file >> flag;
-	hasStation = (flag == 1);
-	if (hasStation) {
-		std::getline(file >> std::ws, station.name);
-		file >> station.workshops >> station.workingWorkshops >> station.stationClass;
+void Station::loadFromFileStation(std::ifstream& file) {
+	file >> id;
+	std::getline(file >> std::ws, name);
+	file >> workshops >> workingWorkshops >> stationClass;
+
+	if (id >= nextStationID) {
+		nextStationID = id + 1;
 	}
 }
-
