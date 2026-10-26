@@ -2,6 +2,7 @@
 #include <string>
 #include <fstream>
 #include <vector>
+#include <sstream>
 #include "Pipe.h"
 #include "Station.h"
 
@@ -26,7 +27,7 @@ void logClose() {
 }
 
 using PipeFilter = bool(*)(const Pipe& p, const std::string& x);
-using StationFilte = bool(*)(const Station& s, const std::string& x);
+using StationFilter = bool(*)(const Station& s, const std::string& x);
 
 bool filterPipeByName(const Pipe& p, const std::string& name) {
 	return p.getKilometerMark() == name;
@@ -82,15 +83,60 @@ void printIds(const std::vector<int>& ids) {
 	}
 }
 
+std::string getInputString(const std::string& prompt) {
+	std::cout << prompt;
+	std::string ret;
+	std::getline(std::cin >> std::ws, ret);
+	return ret;
+}
+
+int getInt(const std::string& prompt) {
+	int val;
+	while (true) {
+		std::cout << prompt;
+		if (std::cin >> val && std::cin.peek() == '\n') break;
+		std::cout << "Error! Enter a valid number\n";
+		std::cin.clear();
+		std::cin.ignore(1000, '\n');
+	}
+	return val;
+}
+
+std::vector<int> selectSubset(const std::vector<int>& foundIds) {
+	std::cout << "Select IDs to process (space-separated, or type 'all'): ";
+	std::string input;
+	std::getline(std::cin >> std::ws, input);
+
+	if (input == "all") return foundIds;
+
+	std::vector<int> selected;
+	std::istringstream iss(input);
+	int id;
+	while (iss >> id) {
+		bool exists = false;
+		for (int fid : foundIds) {
+			if (fid == id) { exists = true; break; }
+		}
+		if (exists) selected.push_back(id);
+		else std::cout << "ID" << id << "not in found set, skipped.\n";
+	}
+	return selected;
+}
+
 void showMenu() {
 	std::cout << "Control menu\n";
 	std::cout << "1. Add a pipe\n";
 	std::cout << "2. Add a station\n";
 	std::cout << "3. View all objects\n";
-	std::cout << "4. Edit a pipe\n";
-	std::cout << "5. Edit a station\n";
-	std::cout << "6. Save\n";
-	std::cout << "7. Load\n";
+	std::cout << "4. Search pipes\n";
+	std::cout << "5. Search stations\n";
+	std::cout << "6. Edit a pipe\n";
+	std::cout << "7. Edit a station\n";
+	std::cout << "8. Batch edit pipes\n";
+	std::cout << "9. Delete a pipe\n";
+	std::cout << "10. Delete a station\n";
+	std::cout << "11. Save to file\n";
+	std::cout << "12. Load from file\n";
 	std::cout << "0. Exit\n";
 	std::cout << "Choose action: ";
 }
@@ -101,7 +147,7 @@ int main() {
 	Pipe p;
 	p.inputPipe();
 	p.printPipe();
-	logMessage("Test pipe creatad");
+	logMessage("Test pipe created");
 
 	logMessage("Program exited");
 	logClose();
