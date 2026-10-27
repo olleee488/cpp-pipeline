@@ -3,6 +3,7 @@
 #include <fstream>
 #include <vector>
 #include <sstream>
+#include <unordered_map>
 #include "Pipe.h"
 #include "Station.h"
 
@@ -48,26 +49,28 @@ bool filterStationByInactive(const Station& s, const std::string& x) {
 }
 
 template <typename TObj, typename T>
-std::vector<int> Search(const std::vector<TObj>& objs, bool(*filterer)(const TObj&, T), T x) {
+std::vector<int> Search(const std::unordered_map<int, TObj>& objs, bool(*filterer)(const TObj&, T), T x) {
 	std::vector<int> subset;
-	for (const auto& o : objs) {
-		if (filterer(o, x)) {
-			subset.push_back(o.getId());
+	for (const auto& [id, obj] : objs) {
+		if (filterer(obj, x)) {
+			subset.push_back(id);
 		}
 	}
 	return subset;
 }
 
-Pipe* findPipeById(std::vector<Pipe>& pipes, int id) {
-	for (auto& p : pipes) {
-		if (p.getId() == id) return &p;
+Pipe* findPipeById(std::unordered_map<int, Pipe>& pipes, int id) {
+	auto it = pipes.find(id);
+	if (it != pipes.end()) {
+		return &(it->second);
 	}
 	return nullptr;
 }
 
-Station* findStationById(std::vector<Station>& stations, int id) {
-	for (auto& s : stations) {
-		if (s.getId() == id) return &s;
+Station* findStationById(std::unordered_map<int, Station>& stations, int id) {
+	auto it = stations.find(id);
+	if (it != stations.end()) {
+		return &(it->second);
 	}
 	return nullptr;
 }
