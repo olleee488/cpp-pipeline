@@ -44,7 +44,7 @@ void Pipe::printPipe() const {
 
 void Pipe::toggleRepair() {
 	underRepair = !underRepair;
-	std::cout << "Pipe #" << id << "repair status changed to: "
+	std::cout << "Pipe #" << id << " repair status changed to: "
 		<< (underRepair ? "Yes" : "No") << "\n";
 }
 

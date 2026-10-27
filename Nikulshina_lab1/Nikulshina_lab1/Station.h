@@ -1,5 +1,4 @@
 #pragma once
-#include <stdlib.h>
 #include <string>
 #include <fstream>
 
@@ -27,7 +26,7 @@ public:
 		return (double)(workshops - workingWorkshops) / workshops * 100.0;
 	}
 
-	void setStation(const std::string& n) { name = n; }
+	void setName(const std::string& n) { name = n; }
 	void setWorkshops(int w) { workshops = w; }
 	void setWorkingWorkshops(int w) { workingWorkshops = w; }
 	void setStationClass(int c) { stationClass = c; }

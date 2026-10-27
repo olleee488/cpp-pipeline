@@ -230,8 +230,8 @@ int main() {
 			}
 			else {
 				p->printPipe();
-				p->setKilometerMark(getInputString("New kilometr mark: "));
-				logMessage("Pipe #" + std::to_string(id) + " edited");
+				p->toggleRepair();
+				logMessage("Pipe #" + std::to_string(id) + "repair status toggled");
 			}
 			break;
 		}
@@ -244,8 +244,31 @@ int main() {
 			}
 			else {
 				s->printStation();
-				s->setName(getInputString("New name : "));
-				logMessage("Station # " + std::to_string(id) + " edited");
+				std::cout << "Manage workshops\n";
+				std::cout << "1. Start a workshop\n";
+				std::cout << "2. Stop a workshop\n";
+				std::cout << "0. Cancel\n";
+				std::cout << "Your choice: \n";
+
+				int sub;
+				if (!(std::cin >> sub)) {
+					std::cin.clear();
+					std::cin.ignore(1000, '\n');
+					std::cout << "Invalid input\n";
+					break;
+				}
+
+				if (sub == 1) {
+					s->startWorkshop();
+					logMessage("Station #" + std::to_string(id) + " workshop started");
+				}
+				else if (sub == 2) {
+					s->stopWorkshop();
+					logMessage("Station #" + std::to_string(id) + " workshop stopped");
+				}
+				else if (sub != 0) {
+					std::cout << "Invalid choice\n";
+				}
 			}
 			break;
 		}
