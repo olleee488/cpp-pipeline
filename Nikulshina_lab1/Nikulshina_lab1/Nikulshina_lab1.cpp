@@ -283,7 +283,7 @@ int main() {
 				found = Search(pipes, filterPipeByName, name);
 			}
 			else if (sub == 2) {
-				std::string val = getInputString("Enter name : ");
+				std::string val = getInputString("Under repair? (1/0): ");
 				found = Search(pipes, filterPipeByRepair, val);
 			}
 			printIds(found);
