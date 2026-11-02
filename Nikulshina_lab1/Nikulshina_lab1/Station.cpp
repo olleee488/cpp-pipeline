@@ -1,4 +1,5 @@
 #include "Station.h"
+#include "utils.h"
 #include <iostream>
 
 int Station::nextStationID = 1;
@@ -6,41 +7,20 @@ int Station::nextStationID = 1;
 Station::Station()
 	:id(nextStationID++), name(""), workshops(0), workingWorkshops(0), stationClass(0) {}
 
-Station::Station(const std::string& n, int ws, int aws, int cls)
-	:id(nextStationID++), name(n), workshops(ws), workingWorkshops(aws), stationClass(cls) {}
-
 void Station::inputStation() {
 	std::cout << "Enter station name: ";
-	std::getline(std::cin >> std::ws, name);
+	std::string n;
+	INPUT_LINE(std::cin, n);
+	name = n;
 
-	while (true) {
-		std::cout << "Enter the number of workshops: ";
-		if (std::cin >> workshops && workshops > 0 && std::cin.peek() == '\n') break;
+	std::cout << "Enter the number of workshops: ";
+	workshops = GetCorrectNumber<int>(1, 100);
+	
+	std::cout << "Enter the number of active workshops: ";
+	workingWorkshops = GetCorrectNumber<int>(1, workshops);
 
-		std::cout << "Error! Enter a valid number\n";
-		std::cin.clear();
-		std::cin.ignore(1000, '\n');
-	}
-
-	while (true) {
-		std::cout << "Enter the number of active workshops: ";
-		if (std::cin >> workingWorkshops && workingWorkshops >= 0
-			&& workingWorkshops <= workshops && std::cin.peek() == '\n') break;
-
-		std::cout << "Error! Enter a valid number. The number of active workshops must be between 0 and "
-			<< workshops << "\n";
-		std::cin.clear();
-		std::cin.ignore(1000, '\n');
-	}
-
-	while (true) {
-		std::cout << "Enter station class: ";
-		if (std::cin >> stationClass && stationClass > 0 && std::cin.peek() == '\n') break;
-
-		std::cout << "Error! Enter a valid number\n";
-		std::cin.clear();
-		std::cin.ignore(1000, '\n');
-	}
+	std::cout << "Enter station class: ";
+	stationClass = GetCorrectNumber<int>(1, 5);
 }
 
 void Station::printStation() const {

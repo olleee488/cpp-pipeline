@@ -6,29 +6,7 @@
 #include <unordered_map>
 #include "Pipe.h"
 #include "Station.h"
-
-std::ofstream logFile;
-
-void logInit(const std::string & filename) {
-	logFile.open(filename, std::ios::app);
-}
-
-void logMessage(const std::string& msg) {
-	if (logFile.is_open()) {
-		logFile << msg << "\n";
-		logFile.flush();
-	}
-	std::cout << "[LOG]" << msg << "\n";
-}
-
-void logClose() {
-	if (logFile.is_open()) {
-		logFile.close();
-	}
-}
-
-using PipeFilter = bool(*)(const Pipe& p, const std::string& x);
-using StationFilter = bool(*)(const Station& s, const std::string& x);
+#include "utils.h"
 
 bool filterPipeByName(const Pipe& p, const std::string& name) {
 	return p.getKilometerMark() == name;
@@ -86,29 +64,10 @@ void printIds(const std::vector<int>& ids) {
 	}
 }
 
-std::string getInputString(const std::string& prompt) {
-	std::cout << prompt;
-	std::string ret;
-	std::getline(std::cin >> std::ws, ret);
-	return ret;
-}
-
-int getInt(const std::string& prompt) {
-	int val;
-	while (true) {
-		std::cout << prompt;
-		if (std::cin >> val && std::cin.peek() == '\n') break;
-		std::cout << "Error! Enter a valid number\n";
-		std::cin.clear();
-		std::cin.ignore(1000, '\n');
-	}
-	return val;
-}
-
 std::vector<int> selectSubset(const std::vector<int>& foundIds) {
 	std::cout << "Select IDs to process (space-separated, or type 'all'): ";
 	std::string input;
-	std::getline(std::cin >> std::ws, input);
+	INPUT_LINE(std::cin, input);
 
 	if (input == "all") return foundIds;
 
@@ -149,24 +108,16 @@ int main() {
 	std::unordered_map<int, Station> stations;
 
 	logInit("actions.log");
-	logMessage("Program started");
 
 	while (true) {
 		showMenu();
-		int choice;
-		if (!(std::cin >> choice)) {
-			std::cout << "Error! Please enter a number\n";
-			std::cin.clear();
-			std::cin.ignore(1000, '\n');
-			continue;
-		}
+		int choice = GetCorrectNumber<int>(0, 12);
 
 		switch (choice) {
 		case 1: {
 			Pipe p;
 			p.inputPipe();
 			pipes.insert({ p.getId(), p });
-			logMessage("Pipe #" + std::to_string(p.getId()) + "added");
 			break;
 		}
 
@@ -174,7 +125,6 @@ int main() {
 			Station s;
 			s.inputStation();
 			stations.insert({ s.getId(), s });
-			logMessage("Station #" + std::to_string(s.getId()) + "added");
 			break;
 		}
 
@@ -191,38 +141,45 @@ int main() {
 
 		case 4: {
 			std::cout << "Search pipes : \n 1. By name \n 2. By repair status \n Choice :  ";
-			int sub; std::cin >> sub;
+			int sub = GetCorrectNumber<int>(1, 2);
 			std::vector<int> found;
 			if (sub == 1) {
-				std::string name = getInputString("Enter name : ");
+				std::cout << "Enter name: ";
+				std::string name;
+				INPUT_LINE(std::cin, name);
 				found = Search(pipes, filterPipeByName, name);
 			} else if (sub == 2) {
-				std::string val = getInputString("Under repair ? (1/0 or yes/no) : ");
+				std::cout << "Under repair ? (1/0 or yes/no) : ";
+				std::string val;
+				INPUT_LINE(std::cin, val);
 				found = Search(pipes, filterPipeByRepair, val);
 			}
 			printIds(found);
-			logMessage("Found : " + std::to_string(found.size()) + "results");
 			break;
 		}
 
 		case 5: {
 			std::cout << "Search stations : \n 1. By name \n 2.By inactive % \n Choice : ";
-			int sub; std::cin >> sub;
+			int sub = GetCorrectNumber<int>(1, 2);
 			std::vector<int> found;
 			if (sub == 1) {
-				std::string name = getInputString("Enter name : ");
+				std::cout << "Enter name : ";
+				std::string name;
+				INPUT_LINE(std::cin, name);
 				found = Search(stations, filterStationByName, name);
 			} else if (sub == 2) {
-				std::string val = getInputString("Min inactive % : ");
+				std::cout << "Min inactive % : ";
+				std::string val;
+				INPUT_LINE(std::cin, val);
 				found = Search(stations, filterStationByInactive, val);
 			}
 			printIds(found);
-			logMessage("Stations found " + std::to_string(found.size()) + " results");
 			break;
 		}
 
 		case 6: {
-			int id = getInt("Enter pipe ID to edit : ");
+			std::cout << "Enter pipe ID to edit: ";
+			int id = GetCorrectNumber<int>(1, 10000);
 			Pipe* p = findPipeById(pipes, id);
 			if (!p) {
 				std::cout << "Pipe not found\n";
@@ -231,13 +188,13 @@ int main() {
 			else {
 				p->printPipe();
 				p->toggleRepair();
-				logMessage("Pipe #" + std::to_string(id) + "repair status toggled");
 			}
 			break;
 		}
 
 		case 7: {
-			int id = getInt("Enter stations ID to edit : ");
+			std::cout << "Enter station ID to edit: ";
+			int id = GetCorrectNumber<int>(1, 10000);
 			Station* s = findStationById(stations, id);
 			if (!s) {
 				std::cout << "Station not found \n";
@@ -250,21 +207,13 @@ int main() {
 				std::cout << "0. Cancel\n";
 				std::cout << "Your choice: \n";
 
-				int sub;
-				if (!(std::cin >> sub)) {
-					std::cin.clear();
-					std::cin.ignore(1000, '\n');
-					std::cout << "Invalid input\n";
-					break;
-				}
+				int sub = GetCorrectNumber<int>(0, 2);
 
 				if (sub == 1) {
 					s->startWorkshop();
-					logMessage("Station #" + std::to_string(id) + " workshop started");
 				}
 				else if (sub == 2) {
 					s->stopWorkshop();
-					logMessage("Station #" + std::to_string(id) + " workshop stopped");
 				}
 				else if (sub != 0) {
 					std::cout << "Invalid choice\n";
@@ -275,15 +224,18 @@ int main() {
 
 		case 8: {
 			std::cout << "Batch edit pipes : \n 1. By name \n 2. By repair status \n Choice: ";
-			int sub; 
-			std::cin >> sub;
+			int sub = GetCorrectNumber<int>(1, 2);
 			std::vector<int> found;
 			if (sub == 1) {
-				std::string name = getInputString("Enter name : ");
+				std::cout << "Enter name : ";
+				std::string name;
+				INPUT_LINE(std::cin, name);
 				found = Search(pipes, filterPipeByName, name);
 			}
 			else if (sub == 2) {
-				std::string val = getInputString("Under repair? (1/0): ");
+				std::cout << "Under repair? (0/1): ";
+				std::string val;
+				INPUT_LINE(std::cin, val);
 				found = Search(pipes, filterPipeByRepair, val);
 			}
 			printIds(found);
@@ -291,8 +243,7 @@ int main() {
 
 			std::vector<int> selected = selectSubset(found);
 			std::cout << "Set under repair ? (1/0): ";
-			int r;
-			std::cin >> r;
+			int r = GetCorrectNumber<int>(0, 1);
 
 			for (int id : selected) {
 				Pipe* p = findPipeById(pipes, id);
@@ -300,7 +251,6 @@ int main() {
 					if ((r == 1 && !p->isUnderRepair()) || (r == 0 && p->isUnderRepair())) {
 						p->toggleRepair();
 					}
-					logMessage("Pipe # " + std::to_string(id) + "batch edited ");
 				}
 			}
 			std::cout << "Edited " << selected.size() << "pipes \n";
@@ -308,9 +258,9 @@ int main() {
 		}
 
 		case 9 : {
-			int id = getInt("Enter pipe Id to delete : ");
+			std::cout << "Enter pipe ID to delete: ";
+			int id = GetCorrectNumber<int>(1, 10000);
 			if (pipes.erase(id) > 0) {
-				logMessage("Pipe # " + std::to_string(id) + " deleted");
 				std::cout << "Pipe deleted\n";
 			}
 			else {
@@ -320,10 +270,10 @@ int main() {
 		}
 
 		case 10: {
-			int id = getInt("Enter station ID to delete : ");
+			std::cout << "Enter station ID to delete: ";
+			int id = GetCorrectNumber<int>(1, 10000);
 			if (stations.erase(id) > 0) {
-				logMessage("Stations # " + std::to_string(id) + "deleted");
-				std::cout << "stattion deleted \n";
+				std::cout << "Station deleted \n";
 			}
 			else {
 				std::cout << "Station not found\n ";
@@ -332,7 +282,9 @@ int main() {
 		}
 
 		case 11: {
-			std::string filename = getInputString("enter filename to save : ");
+			std::cout << "Enter filename to save : ";
+			std::string filename;
+			INPUT_LINE(std::cin, filename);
 			std::ofstream file(filename);
 
 			if (!file.is_open()) {
@@ -344,14 +296,15 @@ int main() {
 				file << stations.size() << "\n";
 				for (const auto& [id, s] : stations) s.saveToFileStation(file);
 				file.close();
-				logMessage("Saved to " + filename);
 				std::cout << "Saved \n";
 			}
 			break;
 		}
 
 		case 12: {
-			std::string filename = getInputString("Enter filename to load : ");
+			std::cout << "Enter filename to load : ";
+			std::string filename;
+			INPUT_LINE(std::cin, filename);
 			std::ifstream file(filename);
 			if (!file.is_open()) {
 				std::cout << "Failed to open file\n";
@@ -373,14 +326,12 @@ int main() {
 					stations.insert({ s.getId(), s });
 				}
 				file.close();
-				logMessage("Loaded from " + filename);
 				std::cout << "Loaded" << pipes.size() << " pipes, " << stations.size() << " stations \n";
 			}
 			break;
 		}
 
 		case 0: {
-			logMessage("Program exited ");
 			logClose();
 			std::cout << " Exiting program \n";
 			return 0;
