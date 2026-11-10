@@ -4,6 +4,7 @@
 #include <vector>
 #include <sstream>
 #include <unordered_map>
+#include <chrono>
 #include "Pipe.h"
 #include "Station.h"
 #include "utils.h"
@@ -104,10 +105,14 @@ void showMenu() {
 }
 
 int main() {
+	redirect_output_wrapper cerr_out(std::cerr);
+	std::string time = std::format("{:%d_%m_%Y %H_%M_%OS}", std::chrono::system_clock::now());
+	std::ofstream logfile("log_" + time);
+	if (logfile)
+		cerr_out.redirect(logfile);
+
 	std::unordered_map<int, Pipe> pipes;
 	std::unordered_map<int, Station> stations;
-
-	logInit("actions.log");
 
 	while (true) {
 		showMenu();
@@ -332,7 +337,6 @@ int main() {
 		}
 
 		case 0: {
-			logClose();
 			std::cout << " Exiting program \n";
 			return 0;
 		}

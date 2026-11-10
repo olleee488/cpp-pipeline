@@ -1,30 +1,29 @@
 #pragma once
 #include <iostream>
-#include <string>
-#include <fstream>
-
-static std::ofstream g_logFile;
-
-inline void logInit(const std::string& filename) {
-	g_logFile.open(filename, std::ios::app);
-}
-
-inline void logClose() {
-	if (g_logFile.is_open()) {
-		g_logFile.close();
-	}
-}
-
-inline void logInput(const std::string& value) {
-	if (g_logFile.is_open()) {
-		g_logFile << value << "\n";
-		g_logFile.flush();
-	}
-	std::cout << value << "\n";
-}
 
 #define INPUT_LINE(in, str) getline(in>>std::ws, str); \
-						logInput(str)
+						std::cerr << str << std::endl
+
+#define PRINT_PARAM(out, x) out<< #x << "=" << x << std::endl
+
+class redirect_output_wrapper
+{
+	std::ostream& stream;
+	std::streambuf* const old_buf;
+public:
+	redirect_output_wrapper(std::ostream& src)
+		:old_buf(src.rdbuf()), stream(src)
+	{
+	}
+
+	~redirect_output_wrapper() {
+		stream.rdbuf(old_buf);
+	}
+	void redirect(std::ostream& dest)
+	{
+		stream.rdbuf(dest.rdbuf());
+	}
+};
 
 template <typename T>
 T GetCorrectNumber(T min, T max)
@@ -38,6 +37,6 @@ T GetCorrectNumber(T min, T max)
 		std::cin.ignore(10000, '\n');
 		std::cout << "Type number (" << min << "-" << max << "):";
 	}
-	logInput(std::to_string(x));
+	std::cerr << x << std::endl;
 	return x;
 }
