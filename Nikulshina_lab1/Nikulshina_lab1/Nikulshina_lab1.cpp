@@ -1,9 +1,9 @@
 ﻿#include <iostream>
 #include <string>
 #include <fstream>
-#include <vector>
 #include <sstream>
 #include <unordered_map>
+#include <set>
 #include <chrono>
 #include "Pipe.h"
 #include "Station.h"
@@ -28,33 +28,25 @@ bool filterStationByInactive(const Station& s, const std::string& x) {
 }
 
 template <typename TObj, typename T>
-std::vector<int> Search(const std::unordered_map<int, TObj>& objs, bool(*filterer)(const TObj&, const T&), const T& x) {
-	std::vector<int> subset;
+std::set<int> Search(const std::unordered_map<int, TObj>& objs, bool(*filterer)(const TObj&, const T&), const T& x) {
+	std::set<int> subset;
 	for (const auto& [id, obj] : objs) {
 		if (filterer(obj, x)) {
-			subset.push_back(id);
+			subset.emplace(id);
 		}
 	}
 	return subset;
 }
 
-Pipe* findPipeById(std::unordered_map<int, Pipe>& pipes, int id) {
-	auto it = pipes.find(id);
-	if (it != pipes.end()) {
-		return &(it->second);
-	}
-	return nullptr;
+auto findPipeById(std::unordered_map<int, Pipe>& pipes, int id) {
+	return pipes.find(id);
 }
 
-Station* findStationById(std::unordered_map<int, Station>& stations, int id) {
-	auto it = stations.find(id);
-	if (it != stations.end()) {
-		return &(it->second);
-	}
-	return nullptr;
+auto findStationById(std::unordered_map<int, Station>& stations, int id) {
+	return stations.find(id);
 }
 
-void printIds(const std::vector<int>& ids) {
+void printIds(const std::set<int>& ids) {
 	if (ids.empty()) {
 		std::cout << "Nothing found.\n";
 	}
@@ -65,23 +57,24 @@ void printIds(const std::vector<int>& ids) {
 	}
 }
 
-std::vector<int> selectSubset(const std::vector<int>& foundIds) {
-	std::cout << "Select IDs to process (space-separated, or type 'all'): ";
-	std::string input;
-	INPUT_LINE(std::cin, input);
+std::set<int> selectSubset(const std::set<int>& foundIds) {
+	std::cout << "Select IDs to process (1 - All found, 2 - Specific IDs): ";
+	int choice = GetCorrectNumber<int>(1, 2);
 
-	if (input == "all") return foundIds;
+	if (choice == 1) return foundIds;
 
-	std::vector<int> selected;
-	std::istringstream iss(input);
-	int id;
-	while (iss >> id) {
-		bool exists = false;
-		for (int fid : foundIds) {
-			if (fid == id) { exists = true; break; }
+	std::set<int> selected;
+	std::cout << "Enter ID (0 to finish):\n";
+	while (true) {
+		int id = GetCorrectNumber<int>(0, 1000);
+		if (id == 0)
+			break;
+		if (foundIds.count(id)) {
+			selected.emplace(id);
 		}
-		if (exists) selected.push_back(id);
-		else std::cout << "ID" << id << "not in found set, skipped.\n";
+		else {
+			std::cout << "ID" << id << "not in found set\n";
+		}
 	}
 	return selected;
 }
@@ -122,14 +115,14 @@ int main() {
 		case 1: {
 			Pipe p;
 			p.inputPipe();
-			pipes.insert({ p.getId(), p });
+			pipes.emplace( p.getId(), p );
 			break;
 		}
 
 		case 2: {
 			Station s;
 			s.inputStation();
-			stations.insert({ s.getId(), s });
+			stations.emplace( s.getId(), s );
 			break;
 		}
 
@@ -147,7 +140,7 @@ int main() {
 		case 4: {
 			std::cout << "Search pipes : \n 1. By name \n 2. By repair status \n Choice :  ";
 			int sub = GetCorrectNumber<int>(1, 2);
-			std::vector<int> found;
+			std::set<int> found;
 			if (sub == 1) {
 				std::cout << "Enter name: ";
 				std::string name;
@@ -166,7 +159,7 @@ int main() {
 		case 5: {
 			std::cout << "Search stations : \n 1. By name \n 2.By inactive % \n Choice : ";
 			int sub = GetCorrectNumber<int>(1, 2);
-			std::vector<int> found;
+			std::set<int> found;
 			if (sub == 1) {
 				std::cout << "Enter name : ";
 				std::string name;
@@ -185,14 +178,15 @@ int main() {
 		case 6: {
 			std::cout << "Enter pipe ID to edit: ";
 			int id = GetCorrectNumber<int>(1, 10000);
-			Pipe* p = findPipeById(pipes, id);
-			if (!p) {
-				std::cout << "Pipe not found\n";
-
+			auto it = findPipeById(pipes, id);
+			if (it != pipes.end()) {
+				Pipe& p = it->second;
+				p.printPipe();
+				p.toggleRepair();
+				std::cout << "Pipe update\n";
 			}
 			else {
-				p->printPipe();
-				p->toggleRepair();
+				std::cout << "Pipe is not found\n";
 			}
 			break;
 		}
@@ -200,12 +194,10 @@ int main() {
 		case 7: {
 			std::cout << "Enter station ID to edit: ";
 			int id = GetCorrectNumber<int>(1, 10000);
-			Station* s = findStationById(stations, id);
-			if (!s) {
-				std::cout << "Station not found \n";
-			}
-			else {
-				s->printStation();
+			auto it = findStationById(stations, id);
+			if (it != stations.end()) {
+				Station& s = it->second;
+				s.printStation();
 				std::cout << "Manage workshops\n";
 				std::cout << "1. Start a workshop\n";
 				std::cout << "2. Stop a workshop\n";
@@ -215,14 +207,14 @@ int main() {
 				int sub = GetCorrectNumber<int>(0, 2);
 
 				if (sub == 1) {
-					s->startWorkshop();
+					s.startWorkshop();
 				}
 				else if (sub == 2) {
-					s->stopWorkshop();
+					s.stopWorkshop();
 				}
-				else if (sub != 0) {
-					std::cout << "Invalid choice\n";
-				}
+			}
+			else {
+				std::cout << "Station not found\n";
 			}
 			break;
 		}
@@ -230,7 +222,7 @@ int main() {
 		case 8: {
 			std::cout << "Batch edit pipes : \n 1. By name \n 2. By repair status \n Choice: ";
 			int sub = GetCorrectNumber<int>(1, 2);
-			std::vector<int> found;
+			std::set<int> found;
 			if (sub == 1) {
 				std::cout << "Enter name : ";
 				std::string name;
@@ -246,15 +238,16 @@ int main() {
 			printIds(found);
 			if (found.empty()) break;
 
-			std::vector<int> selected = selectSubset(found);
+			std::set<int> selected = selectSubset(found);
 			std::cout << "Set under repair ? (1/0): ";
 			int r = GetCorrectNumber<int>(0, 1);
 
 			for (int id : selected) {
-				Pipe* p = findPipeById(pipes, id);
-				if (p) {
-					if ((r == 1 && !p->isUnderRepair()) || (r == 0 && p->isUnderRepair())) {
-						p->toggleRepair();
+				auto it = findPipeById(pipes, id);
+				if (it != pipes.end()) {
+					Pipe& p = it->second;
+					if ((r == 1 && !p.isUnderRepair()) || (r == 0 && p.isUnderRepair())) {
+						p.toggleRepair();
 					}
 				}
 			}
@@ -322,13 +315,13 @@ int main() {
 				for (size_t i = 0; i < n; i++) {
 					Pipe p;
 					p.loadFromFilePipe(file);
-					pipes.insert({ p.getId(), p });
+					pipes.emplace( p.getId(), p );
 				}
 				file >> n;
 				for (size_t i = 0; i < n; i++) {
 					Station s;
 					s.loadFromFileStation(file);
-					stations.insert({ s.getId(), s });
+					stations.emplace( s.getId(), s );
 				}
 				file.close();
 				std::cout << "Loaded" << pipes.size() << " pipes, " << stations.size() << " stations \n";
