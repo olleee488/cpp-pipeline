@@ -10,20 +10,18 @@
 #include "utils.h"
 
 bool filterPipeByName(const Pipe& p, const std::string& name) {
-	return p.getKilometerMark() == name;
+	return p.getKilometerMark().find(name) != std::string::npos;
 }
 
-bool filterPipeByRepair(const Pipe& p, const std::string& x) {
-	bool wantRepair = (x == "1" || x == "yes");
+bool filterPipeByRepair(const Pipe& p, const bool& wantRepair) {
 	return p.isUnderRepair() == wantRepair;
 }
 
 bool filterStationByName(const Station& s, const std::string& name) {
-	return s.getName() == name;
+	return s.getName().find(name) != std::string::npos;
 }
 
-bool filterStationByInactive(const Station& s, const std::string& x) {
-	double percent = std::stod(x);
+bool filterStationByInactive(const Station& s, const double& percent) {
 	return s.getInactivePercent() >= percent;
 }
 
@@ -36,14 +34,6 @@ std::set<int> Search(const std::unordered_map<int, TObj>& objs, bool(*filterer)(
 		}
 	}
 	return subset;
-}
-
-auto findPipeById(std::unordered_map<int, Pipe>& pipes, int id) {
-	return pipes.find(id);
-}
-
-auto findStationById(std::unordered_map<int, Station>& stations, int id) {
-	return stations.find(id);
 }
 
 void printIds(const std::set<int>& ids) {
@@ -66,14 +56,14 @@ std::set<int> selectSubset(const std::set<int>& foundIds) {
 	std::set<int> selected;
 	std::cout << "Enter ID (0 to finish):\n";
 	while (true) {
-		int id = GetCorrectNumber<int>(0, 1000);
+		int id = GetCorrectNumber<int>(0, 1000000);
 		if (id == 0)
 			break;
 		if (foundIds.count(id)) {
 			selected.emplace(id);
 		}
 		else {
-			std::cout << "ID" << id << "not in found set\n";
+			std::cout << "ID " << id << "not in found set\n";
 		}
 	}
 	return selected;
@@ -150,7 +140,8 @@ int main() {
 				std::cout << "Under repair ? (1/0 or yes/no) : ";
 				std::string val;
 				INPUT_LINE(std::cin, val);
-				found = Search(pipes, filterPipeByRepair, val);
+				bool wantRepair = (val == "1" || val == "yes");
+				found = Search(pipes, filterPipeByRepair, wantRepair);
 			}
 			printIds(found);
 			break;
@@ -167,9 +158,8 @@ int main() {
 				found = Search(stations, filterStationByName, name);
 			} else if (sub == 2) {
 				std::cout << "Min inactive % : ";
-				std::string val;
-				INPUT_LINE(std::cin, val);
-				found = Search(stations, filterStationByInactive, val);
+				double percent = GetCorrectNumber<double>(0.0, 100.0);
+				found = Search(stations, filterStationByInactive, percent);
 			}
 			printIds(found);
 			break;
@@ -178,7 +168,7 @@ int main() {
 		case 6: {
 			std::cout << "Enter pipe ID to edit: ";
 			int id = GetCorrectNumber<int>(1, 10000);
-			auto it = findPipeById(pipes, id);
+			auto it = pipes.find(id);
 			if (it != pipes.end()) {
 				Pipe& p = it->second;
 				p.printPipe();
@@ -194,7 +184,7 @@ int main() {
 		case 7: {
 			std::cout << "Enter station ID to edit: ";
 			int id = GetCorrectNumber<int>(1, 10000);
-			auto it = findStationById(stations, id);
+			auto it = stations.find(id);
 			if (it != stations.end()) {
 				Station& s = it->second;
 				s.printStation();
@@ -231,27 +221,38 @@ int main() {
 			}
 			else if (sub == 2) {
 				std::cout << "Under repair? (0/1): ";
-				std::string val;
-				INPUT_LINE(std::cin, val);
-				found = Search(pipes, filterPipeByRepair, val);
+				bool wantRepair = (GetCorrectNumber<int>(0, 1) == 1);
+				found = Search(pipes, filterPipeByRepair, wantRepair);
 			}
 			printIds(found);
 			if (found.empty()) break;
 
 			std::set<int> selected = selectSubset(found);
-			std::cout << "Set under repair ? (1/0): ";
-			int r = GetCorrectNumber<int>(0, 1);
+			if (selected.empty()) break;
 
-			for (int id : selected) {
-				auto it = findPipeById(pipes, id);
-				if (it != pipes.end()) {
-					Pipe& p = it->second;
-					if ((r == 1 && !p.isUnderRepair()) || (r == 0 && p.isUnderRepair())) {
-						p.toggleRepair();
+			std::cout << "Action:\n 1. Set repair status\n 2. Delete pipes\n Choice: ";
+			int action = GetCorrectNumber<int>(1, 2);
+
+			if (action == 1) {
+				std::cout << "Set under repair ? (1/0): ";
+				int r = GetCorrectNumber<int>(0, 1);
+				for (int id : selected) {
+					auto it = pipes.find(id);
+					if (it != pipes.end()) {
+						Pipe& p = it->second;
+						if ((r == 1 && !p.isUnderRepair()) || (r == 0 && p.isUnderRepair())) {
+							p.toggleRepair();
+						}
 					}
 				}
+				std::cout << "Edited " << selected.size() << " pipes\n";
 			}
-			std::cout << "Edited " << selected.size() << "pipes \n";
+			else if (action == 2) {
+				for (int id : selected) {
+					pipes.erase(id);
+				}
+				std::cout << "Deleted " << selected.size() << " pipes\n";
+			}
 			break;
 		}
 
